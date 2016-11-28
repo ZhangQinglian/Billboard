@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="Billboard">
+        <attr name="billboard_columns" format="integer"/>
+        <attr name="billboard_rows" format="integer"/>
+        <attr name="billboard_duration" format="integer"/>
+        <attr name="billboard_delay" format="integer"/>
+
+    </declare-styleable>
+</resources>

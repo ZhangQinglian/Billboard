@@ -3,8 +3,10 @@ package com.zql.android.bambooslip;
 import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
@@ -15,6 +17,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 
 /**
@@ -26,25 +29,63 @@ public class Billboard extends FrameLayout {
     public static final int BAMBOO_SLIP_ORIENTATION_VERTICAL = 1;
     public static final int BAMBOO_SLIP_ORIENTATION_HORIZONTAL = 2;
 
+    private BaseView mBaseView;
     private int mSlipColumns;
     private int mSlipRows;
     private long mAnimationDuration;
     private long mAnimationDelay;
     private Handler mHandler = new Handler();
+    private int mCount = -1;
+
+    private BillboardCallback mCallback;
+    public interface BillboardCallback{
+        Bitmap getBitmap(int count);
+    }
 
     public Billboard(Context context,int slipColumns,int slipRows,long animationDuratin,long animationDelay) {
         super(context);
-        mSlipColumns = slipColumns;
-        mSlipRows = slipRows;
-        mAnimationDuration = animationDuratin;
-        mAnimationDelay = animationDelay;
-        setDrawingCacheEnabled(true);
+        initView(slipColumns,slipRows,animationDuratin,animationDelay);
+
     }
 
     public Billboard(Context context, AttributeSet attrs) {
         super(context, attrs);
+        setDrawingCacheEnabled(true);
+        if(attrs != null){
+            TypedArray typedArray = context.obtainStyledAttributes(attrs,R.styleable.Billboard);
+            int columns = typedArray.getInt(R.styleable.Billboard_billboard_columns,10);
+            int rows = typedArray.getInt(R.styleable.Billboard_billboard_rows,1);
+            int duration = typedArray.getInt(R.styleable.Billboard_billboard_duration,1000);
+            int delay = typedArray.getInt(R.styleable.Billboard_billboard_delay,3000);
+            initView(columns,rows,duration,delay);
+            typedArray.recycle();
+        }
     }
 
+    public void setCallback(BillboardCallback callback){
+        mCallback = callback;
+    }
+
+    public void clearCallback(){
+        mCallback = null;
+    }
+    private void initView(int slipColumns,int slipRows,long animationDuration,long animationDelay){
+        setDrawingCacheEnabled(true);
+        mSlipColumns = slipColumns;
+        mSlipRows = slipRows;
+        mAnimationDuration = animationDuration;
+        mAnimationDelay = animationDelay;
+        mBaseView = new BaseView(this);
+        Log.d("scott","columns = " + mSlipColumns + "  row = " + mSlipRows + "  duration = " + mAnimationDuration + " delay = " + mAnimationDelay);
+    }
+
+    private int getCount(){
+        if(mCount == Integer.MAX_VALUE){
+            mCount = -1;
+        }
+        mCount += 1;
+        return mCount;
+    }
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
@@ -56,6 +97,10 @@ public class Billboard extends FrameLayout {
 
                 for(int i = 0;i<mSlipRows*mSlipColumns;i++){
                     Slip slip = new Slip(Billboard.this,BAMBOO_SLIP_ORIENTATION_HORIZONTAL,mSlipColumns,mSlipRows);
+                }
+                if(mCallback != null){
+                    Bitmap bitmap = mCallback.getBitmap(getCount());
+                    mBaseView.setBitmap(bitmap);
                 }
                 getViewTreeObserver().removeOnPreDrawListener(this);
                 return true;
@@ -71,7 +116,7 @@ public class Billboard extends FrameLayout {
             slip.invalidate();
             slip.setVisibility(VISIBLE);
         }
-        getChildAt(0).setVisibility(INVISIBLE);
+        mBaseView.setVisibility(INVISIBLE);
         startFlip();
     }
 
@@ -85,6 +130,24 @@ public class Billboard extends FrameLayout {
                 }
             },i*mAnimationDelay);
         }
+    }
+
+    private class BaseView extends ImageView{
+
+        Bitmap bitmap ;
+        public BaseView(Billboard billboard) {
+            super(billboard.getContext());
+            FrameLayout.LayoutParams FLP = new LayoutParams(LayoutParams.MATCH_PARENT,LayoutParams.MATCH_PARENT);
+            setLayoutParams(FLP);
+            billboard.addView(this);
+            setScaleType(ScaleType.FIT_CENTER);
+        }
+
+        public void setBitmap(Bitmap bitmap) {
+            this.bitmap = bitmap;
+            setImageBitmap(bitmap);
+        }
+
     }
     private class Slip extends View {
 
@@ -108,10 +171,15 @@ public class Billboard extends FrameLayout {
             index = bambooSlips.getChildCount() - 1;
             int w = bambooSlips.getWidth();
             int h = bambooSlips.getHeight();
-            int layoutW = w / slipColumns;
-            int layoutH = h / slipRows;
+
+
+            int layoutW = (w / slipColumns);
+            if((index+1)%mSlipColumns == 0){
+                layoutW = layoutW + (w%slipColumns);
+            }
+            int layoutH = (h / slipRows);
             FrameLayout.LayoutParams FLP = new LayoutParams(layoutW, layoutH);
-            FLP.leftMargin = layoutW * (index % slipColumns);
+            FLP.leftMargin = (w / slipColumns) * (index % slipColumns);
             FLP.topMargin = layoutH * (index / slipColumns);
             this.setLayoutParams(FLP);
             Log.d("scott","" + index + "   w = " + layoutW + "  h = " + layoutH + "   l = " + FLP.leftMargin + "  t = " + FLP.topMargin);
