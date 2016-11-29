@@ -7,11 +7,9 @@ Transition the views as billboard.
 
 # How to include
 
-
-# Usage
-
 ...
 
+# Usage
 
 ## 1. wirte the code in layout
 
