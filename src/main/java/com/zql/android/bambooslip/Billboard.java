@@ -47,7 +47,16 @@ public class Billboard extends FrameLayout {
     private Bitmap mNextBitmap;
     private TimeInterpolator mTimeInterpolator = new AnticipateOvershootInterpolator();
 
+    /**
+     * {@link Billboard}'s callback
+     */
     public interface BillboardCallback {
+        /**
+         * get a bitmap to show
+         *
+         * @param count {0,1,2,3,4,5,6,7,8, ... ,Integer.MAX_VALUE}
+         * @return
+         */
         Bitmap getBitmap(int count);
     }
 
@@ -73,6 +82,11 @@ public class Billboard extends FrameLayout {
         }
     }
 
+    /**
+     * set the callback
+     *
+     * @param callback {@link BillboardCallback}
+     */
     public void setCallback(BillboardCallback callback) {
         mCallback = callback;
     }
@@ -151,7 +165,36 @@ public class Billboard extends FrameLayout {
         });
     }
 
-    public void prepareFlip() {
+
+    /**
+     * start flip
+     */
+    public void go() {
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                prepareFlip();
+            }
+        }, 1000);
+    }
+
+    /**
+     * set timeInterpolator of flip animation
+     *
+     * @param timeInterpolator
+     */
+    public void setTimeInterpolator(TimeInterpolator timeInterpolator) {
+        mTimeInterpolator = timeInterpolator;
+    }
+
+    /**
+     * end flip
+     */
+    public void endFlip() {
+        mIsEnd = true;
+    }
+
+    private void prepareFlip() {
         for (int i = 0; i < mSlipColumns * mSlipRows; i++) {
             Slip slip = (Slip) getChildAt(i + 1);
             slip.invalidate();
@@ -161,12 +204,6 @@ public class Billboard extends FrameLayout {
         startFlip();
     }
 
-    public void setTimeInterpolator(TimeInterpolator timeInterpolator){
-        mTimeInterpolator = timeInterpolator;
-    }
-    public void endFlip() {
-        mIsEnd = true;
-    }
 
     private void startFlip() {
         for (int i = 0; i < mSlipColumns * mSlipRows; i++) {
@@ -199,10 +236,10 @@ public class Billboard extends FrameLayout {
         }
         mBaseView.setBitmap(mCurrentBitmap);
         mBaseView.setVisibility(VISIBLE);
-        if(!mIsEnd){
-            mHandler.postDelayed(mRunFlip,mFlipDuration);
+        if (!mIsEnd) {
+            mHandler.postDelayed(mRunFlip, mFlipDuration);
         }
-}
+    }
 
     private Bitmap fitBitmap(Bitmap bitmap, int w, int h) {
         Bitmap des = Bitmap.createScaledBitmap(bitmap, w, h, false);
@@ -210,140 +247,140 @@ public class Billboard extends FrameLayout {
         return des;
     }
 
-private class BaseView extends ImageView {
+    private class BaseView extends ImageView {
 
-    Bitmap bitmap;
+        Bitmap bitmap;
 
-    public BaseView(Billboard billboard) {
-        super(billboard.getContext());
-        FrameLayout.LayoutParams FLP = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        setLayoutParams(FLP);
+        public BaseView(Billboard billboard) {
+            super(billboard.getContext());
+            FrameLayout.LayoutParams FLP = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+            setLayoutParams(FLP);
 
-        billboard.addView(this);
+            billboard.addView(this);
 
-        setScaleType(ScaleType.FIT_XY);
-    }
-
-    public void setBitmap(Bitmap bitmap) {
-        this.bitmap = bitmap;
-        setImageBitmap(bitmap);
-    }
-
-}
-
-private class Slip extends View {
-
-    private int orientation;
-    private Rect boundsSrc;
-    private Rect boundsDes;
-    private Paint bitmapPaint;
-    private int index;
-    private boolean next = false;
-
-    public Slip(Billboard bambooSlips, int orientation, int slipColumns, int slipRows) {
-        super(bambooSlips.getContext());
-        //setBackgroundColor(getRandomColor());
-        setVisibility(INVISIBLE);
-        setCameraDistance(50 * getResources().getDisplayMetrics().densityDpi);
-        bitmapPaint = new Paint();
-        bitmapPaint.setDither(true);
-        bitmapPaint.setFilterBitmap(true);
-
-        this.orientation = orientation;
-        index = bambooSlips.getChildCount() - 1;
-        int w = bambooSlips.getWidth();
-        int h = bambooSlips.getHeight();
-
-
-        int layoutW = (w / slipColumns);
-        if ((index + 1) % mSlipColumns == 0) {
-            layoutW = layoutW + (w % slipColumns);
+            setScaleType(ScaleType.FIT_XY);
         }
-        int layoutH = (h / slipRows);
-        if((index+mSlipColumns)>=(mSlipColumns*mSlipRows)){
-            layoutH = layoutH + (h%slipRows);
+
+        public void setBitmap(Bitmap bitmap) {
+            this.bitmap = bitmap;
+            setImageBitmap(bitmap);
         }
-        FrameLayout.LayoutParams FLP = new LayoutParams(layoutW, layoutH);
-        FLP.leftMargin = (w / slipColumns) * (index % slipColumns);
-        FLP.topMargin = (h / slipRows) * (index / slipColumns);
-        this.setLayoutParams(FLP);
-        //Log.d("scott", "" + index + "   w = " + layoutW + "  h = " + layoutH + "   l = " + FLP.leftMargin + "  t = " + FLP.topMargin);
-        boundsSrc = new Rect(FLP.leftMargin, FLP.topMargin, FLP.leftMargin + layoutW, FLP.topMargin + layoutH);
-        boundsDes = new Rect(0, 0, layoutW, layoutH);
-        bambooSlips.addView(this);
+
     }
 
-    public void initNext() {
-        next = false;
-    }
+    private class Slip extends View {
 
-    @Override
-    protected void onDraw(Canvas canvas) {
-        if (next) {
-            if (mNextBitmap != null) {
-                canvas.drawBitmap(mNextBitmap, boundsSrc, boundsDes, bitmapPaint);
+        private int orientation;
+        private Rect boundsSrc;
+        private Rect boundsDes;
+        private Paint bitmapPaint;
+        private int index;
+        private boolean next = false;
+
+        public Slip(Billboard bambooSlips, int orientation, int slipColumns, int slipRows) {
+            super(bambooSlips.getContext());
+            //setBackgroundColor(getRandomColor());
+            setVisibility(INVISIBLE);
+            setCameraDistance(50 * getResources().getDisplayMetrics().densityDpi);
+            bitmapPaint = new Paint();
+            bitmapPaint.setDither(true);
+            bitmapPaint.setFilterBitmap(true);
+
+            this.orientation = orientation;
+            index = bambooSlips.getChildCount() - 1;
+            int w = bambooSlips.getWidth();
+            int h = bambooSlips.getHeight();
+
+
+            int layoutW = (w / slipColumns);
+            if ((index + 1) % mSlipColumns == 0) {
+                layoutW = layoutW + (w % slipColumns);
             }
-        } else {
-            if (mCurrentBitmap != null) {
-                canvas.drawBitmap(mCurrentBitmap, boundsSrc, boundsDes, bitmapPaint);
+            int layoutH = (h / slipRows);
+            if ((index + mSlipColumns) >= (mSlipColumns * mSlipRows)) {
+                layoutH = layoutH + (h % slipRows);
             }
+            FrameLayout.LayoutParams FLP = new LayoutParams(layoutW, layoutH);
+            FLP.leftMargin = (w / slipColumns) * (index % slipColumns);
+            FLP.topMargin = (h / slipRows) * (index / slipColumns);
+            this.setLayoutParams(FLP);
+            //Log.d("scott", "" + index + "   w = " + layoutW + "  h = " + layoutH + "   l = " + FLP.leftMargin + "  t = " + FLP.topMargin);
+            boundsSrc = new Rect(FLP.leftMargin, FLP.topMargin, FLP.leftMargin + layoutW, FLP.topMargin + layoutH);
+            boundsDes = new Rect(0, 0, layoutW, layoutH);
+            bambooSlips.addView(this);
         }
 
-    }
+        public void initNext() {
+            next = false;
+        }
 
-    public void doAnimation() {
-        ValueAnimator animator = ValueAnimator.ofFloat(0.0f, 180.0f);
-        animator.setInterpolator(mTimeInterpolator);
-        animator.setDuration(mAnimationDuration);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator animation) {
-                float v = (float) animation.getAnimatedValue();
-                if (v > 85 && !next) {
-                    next = true;
-                    invalidate();
+        @Override
+        protected void onDraw(Canvas canvas) {
+            if (next) {
+                if (mNextBitmap != null) {
+                    canvas.drawBitmap(mNextBitmap, boundsSrc, boundsDes, bitmapPaint);
                 }
-                if (v > 90) {
-                    applyAnimationValue(v + 180);
-                } else {
-                    applyAnimationValue(v);
+            } else {
+                if (mCurrentBitmap != null) {
+                    canvas.drawBitmap(mCurrentBitmap, boundsSrc, boundsDes, bitmapPaint);
                 }
             }
-        });
-        animator.addListener(new Animator.AnimatorListener() {
-            @Override
-            public void onAnimationStart(Animator animation) {
-                animationStart(index);
-            }
 
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                animationStop(index);
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-        });
-        animator.start();
-    }
-
-    private void applyAnimationValue(float v) {
-        if (orientation == BAMBOO_SLIP_ORIENTATION_VERTICAL) {
-            setRotationX(-v);
         }
-        if (orientation == BAMBOO_SLIP_ORIENTATION_HORIZONTAL) {
-            setRotationY(v);
-        }
-    }
 
-}
+        public void doAnimation() {
+            ValueAnimator animator = ValueAnimator.ofFloat(0.0f, 180.0f);
+            animator.setInterpolator(mTimeInterpolator);
+            animator.setDuration(mAnimationDuration);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float v = (float) animation.getAnimatedValue();
+                    if (v > 85 && !next) {
+                        next = true;
+                        invalidate();
+                    }
+                    if (v > 90) {
+                        applyAnimationValue(v + 180);
+                    } else {
+                        applyAnimationValue(v);
+                    }
+                }
+            });
+            animator.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+                    animationStart(index);
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    animationStop(index);
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+
+                }
+            });
+            animator.start();
+        }
+
+        private void applyAnimationValue(float v) {
+            if (orientation == BAMBOO_SLIP_ORIENTATION_VERTICAL) {
+                setRotationX(-v);
+            }
+            if (orientation == BAMBOO_SLIP_ORIENTATION_HORIZONTAL) {
+                setRotationY(v);
+            }
+        }
+
+    }
 
     private void animationStop(int index) {
         if (index == mSlipColumns * mSlipRows - 1) {
