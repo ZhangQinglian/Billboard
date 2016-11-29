@@ -1,7 +1,7 @@
 # Billboard
 Transition the views as billboard.
 
-![](http://7xprgn.com1.z0.glb.clouddn.com/billboard.gif)
+![](http://7xprgn.com1.z0.glb.clouddn.com/bill.gif)
 
 [See it on Youtube](https://youtu.be/1wO3laIowTw)
 
