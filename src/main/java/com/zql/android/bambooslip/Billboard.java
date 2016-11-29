@@ -260,9 +260,12 @@ private class Slip extends View {
             layoutW = layoutW + (w % slipColumns);
         }
         int layoutH = (h / slipRows);
+        if((index+mSlipColumns)>=(mSlipColumns*mSlipRows)){
+            layoutH = layoutH + (h%slipRows);
+        }
         FrameLayout.LayoutParams FLP = new LayoutParams(layoutW, layoutH);
         FLP.leftMargin = (w / slipColumns) * (index % slipColumns);
-        FLP.topMargin = layoutH * (index / slipColumns);
+        FLP.topMargin = (h / slipRows) * (index / slipColumns);
         this.setLayoutParams(FLP);
         //Log.d("scott", "" + index + "   w = " + layoutW + "  h = " + layoutH + "   l = " + FLP.leftMargin + "  t = " + FLP.topMargin);
         boundsSrc = new Rect(FLP.leftMargin, FLP.topMargin, FLP.leftMargin + layoutW, FLP.topMargin + layoutH);
