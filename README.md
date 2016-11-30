@@ -7,7 +7,11 @@ Transition the views as billboard.
 
 # How to include
 
-...
+```gradle
+dependencies {
+    compile 'com.zql.android:billboard:1.1'
+}
+```
 
 # Usage
 
@@ -115,7 +119,28 @@ billboard.go();
      */
     Billboard.setTimeInterpolator(TimeInterpolator timeInterpolator)
 ```
+# version 1.1
+Add a method in BillboardCallback to custom the flip order.
+```java
+/**
+         * custom the delay time of every slip
+         * @param index slip index
+         * @param delay the time you define in layout xml
+         * @param slipSize the size of slip
+         * @return delayfactor
+         */
+        long getDelayFactor(int index,int slipSize,long delay);
+```
 
+for example:
+
+**index * delay** make the order from left to right.
+```java
+@Override
+        public long getDelayFactor(int index, int slipSize,long delay) {
+            return index * delay;
+        }
+```
 # License
 
 		 Copyright 2016 zhangqinglian
