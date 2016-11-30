@@ -11,7 +11,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Handler;
-import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -46,6 +45,8 @@ public class Billboard extends FrameLayout {
     private Bitmap mCurrentBitmap;
     private Bitmap mNextBitmap;
     private TimeInterpolator mTimeInterpolator = new AnticipateOvershootInterpolator();
+    private int mLastSlip = -1;
+    private long mTmpDelayFactor = -1;
 
     /**
      * {@link Billboard}'s callback
@@ -55,9 +56,18 @@ public class Billboard extends FrameLayout {
          * get a bitmap to show
          *
          * @param count {0,1,2,3,4,5,6,7,8, ... ,Integer.MAX_VALUE}
-         * @return
+         * @return the bitmap to show
          */
         Bitmap getBitmap(int count);
+
+        /**
+         * custom the delay time of every slip
+         * @param index slip index
+         * @param delay the time you define in layout xml
+         * @param slipSize the size of slip
+         * @return delayfactor
+         */
+        long getDelayFactor(int index,int slipSize,long delay);
     }
 
     public Billboard(Context context, int slipColumns, int slipRows, long animationDuratin, long animationDelay, long flipDuration, int orientaion) {
@@ -144,7 +154,6 @@ public class Billboard extends FrameLayout {
         super.onAttachedToWindow();
 
         getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @RequiresApi(api = Build.VERSION_CODES.HONEYCOMB_MR1)
             @Override
             public boolean onPreDraw() {
 
@@ -181,7 +190,7 @@ public class Billboard extends FrameLayout {
     /**
      * set timeInterpolator of flip animation
      *
-     * @param timeInterpolator
+     * @param timeInterpolator timeInterpolator of flip animation
      */
     public void setTimeInterpolator(TimeInterpolator timeInterpolator) {
         mTimeInterpolator = timeInterpolator;
@@ -208,12 +217,23 @@ public class Billboard extends FrameLayout {
     private void startFlip() {
         for (int i = 0; i < mSlipColumns * mSlipRows; i++) {
             final Slip slip = (Slip) getChildAt(i + 1);
+            long delayFactor =  mCallback.getDelayFactor(i,mSlipColumns*mSlipRows,mAnimationDelay);
+            if(mLastSlip == -1){
+                mLastSlip = i;
+            }
+            if(mTmpDelayFactor == -1){
+                mTmpDelayFactor = delayFactor;
+            }
+            if(delayFactor>=mTmpDelayFactor){
+                mLastSlip = i;
+                mTmpDelayFactor = delayFactor;
+            }
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     slip.doAnimation();
                 }
-            }, i * mAnimationDelay);
+            },delayFactor);
         }
     }
 
@@ -383,7 +403,7 @@ public class Billboard extends FrameLayout {
     }
 
     private void animationStop(int index) {
-        if (index == mSlipColumns * mSlipRows - 1) {
+        if (index == mLastSlip) {
             stopFlip();
         }
     }
