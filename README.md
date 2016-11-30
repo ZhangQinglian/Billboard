@@ -66,6 +66,10 @@ billboard.setCallback(new Billboard.BillboardCallback() {
         }
         return null;
     }
+    @Override
+    public long getDelayFactor(int index, int slipSize,long delay) {
+        return index * delay;
+    }
 });
 billboard.go();
 ```
@@ -123,13 +127,13 @@ billboard.go();
 Add a method in BillboardCallback to custom the flip order.
 ```java
 /**
-         * custom the delay time of every slip
-         * @param index slip index
-         * @param delay the time you define in layout xml
-         * @param slipSize the size of slip
-         * @return delayfactor
-         */
-        long getDelayFactor(int index,int slipSize,long delay);
+ * custom the delay time of every slip
+* @param index slip index
+* @param delay the time you define in layout xml
+* @param slipSize the size of slip
+* @return delayfactor
+*/
+long getDelayFactor(int index,int slipSize,long delay);
 ```
 
 for example:
@@ -137,9 +141,9 @@ for example:
 **index * delay** make the order from left to right.
 ```java
 @Override
-        public long getDelayFactor(int index, int slipSize,long delay) {
-            return index * delay;
-        }
+public long getDelayFactor(int index, int slipSize,long delay) {
+    return index * delay;
+}
 ```
 # License
 
