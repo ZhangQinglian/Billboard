@@ -107,6 +107,14 @@ billboard.go();
          * @return
          */
         Bitmap getBitmap(int count);
+	/**
+         * custom the delay time of every slip
+         * @param index slip index
+         * @param delay the time you define in layout xml
+         * @param slipSize the size of slip
+         * @return delayfactor
+         */
+        long getDelayFactor(int index,int slipSize,long delay);
     }
 
     /**
