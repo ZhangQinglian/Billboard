@@ -2,6 +2,8 @@
 Transition the views as billboard.
 
 ![](http://7xprgn.com1.z0.glb.clouddn.com/bill.gif)
+![](http://7xprgn.com1.z0.glb.clouddn.com/bill2.gif)
+![](http://7xprgn.com1.z0.glb.clouddn.com/bill3.gif)
 
 [See it on Youtube](https://youtu.be/1wO3laIowTw)
 
