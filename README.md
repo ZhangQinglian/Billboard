@@ -17,7 +17,7 @@ dependencies {
 
 # Usage
 
-## 1. wirte the code in layout
+## 1. write the code in layout
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
